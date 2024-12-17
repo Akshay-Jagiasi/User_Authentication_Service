@@ -1,0 +1,30 @@
+services:
+  # MySQL database service
+  db:
+    image: mysql:8.0  # Use the MySQL 8.0 image
+    volumes:
+      - ./dbinit/init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount the init.sql to create the tables
+      - db_data:/var/lib/mysql  # Persist MySQL data between container restarts
+    environment:
+      MYSQL_ROOT_PASSWORD: "akshay"  # Set the root password to "akshay"
+      # MYSQL_DATABASE: auth_service  # Create the database for the application
+    ports:
+      - "3307:3306"  # Expose MySQL port to the host machine
+
+  # Node.js application service
+  app:
+    build: .  # Build the app using the Dockerfile
+    ports:
+      - "5000:5000"  # Map port 5000 of the container to port 5000 on the host machine
+    environment:
+      DB_HOST: db  # The database service is referred to as 'db' inside the container
+      DB_NAME: auth_service  # Name of database
+      DB_USER: root  # MySQL user
+      DB_PASSWORD: "akshay"  # MySQL password
+      JWT_SECRET_KEY: "akshay"  # JWT secret key for authentication
+      PORT: 5000  # Port the app will run on
+    depends_on:
+      - db  # Ensure the 'db' service starts before 'app' service
+
+volumes:
+  db_data:  # Named volume to store MySQL data
